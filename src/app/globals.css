@@ -1,0 +1,389 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+:root {
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.14 0.05 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0.05 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.14 0.05 285);
+  --primary: oklch(0.25 0.1 260); /* Deep premium blue/indigo */
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.96 0.01 260);
+  --secondary-foreground: oklch(0.2 0.05 260);
+  --muted: oklch(0.96 0.01 260);
+  --muted-foreground: oklch(0.55 0.02 260);
+  --accent: oklch(0.96 0.01 260);
+  --accent-foreground: oklch(0.2 0.05 260);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.92 0.01 260);
+  --input: oklch(0.92 0.01 260);
+  --ring: oklch(0.25 0.1 260);
+  --radius: 0.75rem; /* Modern rounded corners */
+}
+
+.dark {
+  --background: oklch(0.1 0.02 260); /* Premium dark mode */
+  --foreground: oklch(0.95 0.01 260);
+  --card: oklch(0.12 0.02 260);
+  --card-foreground: oklch(0.95 0.01 260);
+  --popover: oklch(0.12 0.02 260);
+  --popover-foreground: oklch(0.95 0.01 260);
+  --primary: oklch(0.6 0.15 260); /* Vibrant blue/indigo for dark mode */
+  --primary-foreground: oklch(0.1 0.02 260);
+  --secondary: oklch(0.15 0.03 260);
+  --secondary-foreground: oklch(0.95 0.01 260);
+  --muted: oklch(0.15 0.03 260);
+  --muted-foreground: oklch(0.6 0.05 260);
+  --accent: oklch(0.18 0.04 260);
+  --accent-foreground: oklch(0.95 0.01 260);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.95 0.01 260);
+  --border: oklch(0.2 0.04 260);
+  --input: oklch(0.2 0.04 260);
+  --ring: oklch(0.6 0.15 260);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased font-sans selection:bg-primary/20 selection:text-primary;
+    /* Soft premium background gradient for light mode */
+    background-image: radial-gradient(circle at top center, rgba(100, 150, 255, 0.03) 0%, transparent 100%);
+  }
+  
+  .dark body {
+    /* Soft premium background gradient for dark mode */
+    background-image: radial-gradient(circle at top center, rgba(100, 150, 255, 0.05) 0%, transparent 100%);
+  }
+}
+
+/* Glassmorphism utilities */
+@layer utilities {
+  .glass {
+    @apply bg-background/60 backdrop-blur-xl border border-border/50 shadow-sm;
+  }
+  
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50 shadow-sm;
+  }
+}
+
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full transition-colors;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Tiptap Editor Base Styles */
+.ProseMirror {
+  @apply outline-none min-h-[500px];
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  @apply text-muted-foreground pointer-events-none h-0;
+}
+
+/* Premium Typography for Editor */
+.ProseMirror h1 {
+  @apply text-4xl md:text-5xl font-extrabold tracking-tight mb-8 mt-12 text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70;
+}
+
+.ProseMirror h2 {
+  @apply text-2xl md:text-3xl font-bold tracking-tight mb-6 mt-10 pb-3 border-b-2 border-primary/10 text-foreground flex items-center gap-2;
+}
+
+.ProseMirror h3 {
+  @apply text-xl md:text-2xl font-semibold tracking-tight mb-4 mt-8 text-foreground/90;
+}
+
+.ProseMirror p {
+  @apply text-base md:text-[17px] leading-relaxed mb-6 text-foreground/80 font-medium;
+}
+
+.ProseMirror a {
+  @apply text-primary font-semibold underline decoration-primary/30 underline-offset-4 hover:decoration-primary transition-all cursor-pointer;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-primary bg-primary/5 pl-6 pr-4 py-5 my-8 rounded-r-2xl italic text-foreground/90 text-lg md:text-xl font-medium shadow-sm;
+}
+
+.ProseMirror code {
+  @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold text-foreground;
+}
+
+.ProseMirror pre {
+  @apply bg-zinc-950 dark:bg-zinc-900 rounded-lg p-4 my-4 overflow-x-auto;
+}
+
+.ProseMirror pre code {
+  @apply bg-transparent text-zinc-100 p-0 text-sm font-normal;
+}
+
+.ProseMirror ul {
+  @apply list-disc list-outside ml-8 mb-6 space-y-2 text-foreground/80 font-medium text-[17px] marker:text-primary;
+}
+
+.ProseMirror ol {
+  @apply list-decimal list-outside ml-8 mb-6 space-y-2 text-foreground/80 font-medium text-[17px] marker:text-primary marker:font-bold;
+}
+
+.ProseMirror hr {
+  @apply my-8 border-border border-t-2;
+}
+
+/* Table styles for Tiptap - Million Dollar Look */
+.ProseMirror table {
+  @apply w-full my-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(255,255,255,0.02)] border border-border/80 bg-card/60 overflow-hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  @apply p-4 md:p-5 align-middle text-sm md:text-[15px] border-b border-border/40;
+}
+
+.ProseMirror tr:last-child td {
+  @apply border-b-0;
+}
+
+.ProseMirror tr:hover td {
+  @apply bg-primary/5 transition-colors duration-200;
+}
+
+.ProseMirror th {
+  @apply bg-muted/80 backdrop-blur-sm font-bold text-left text-foreground uppercase tracking-widest text-xs border-b-2 border-primary/20;
+}
+
+.ProseMirror th:first-child {
+  @apply rounded-tl-2xl;
+}
+
+.ProseMirror th:last-child {
+  @apply rounded-tr-2xl;
+}
+
+.ProseMirror td {
+  @apply text-foreground/80 font-medium;
+}
+
+.ProseMirror td strong {
+  @apply text-primary font-extrabold;
+}
+
+/* Task lists */
+ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+}
+
+ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+ul[data-type="taskList"] li > label {
+  flex: 0 0 auto;
+  user-select: none;
+  margin-top: 0.25rem;
+}
+
+ul[data-type="taskList"] li > div {
+  flex: 1 1 auto;
+}
+
+ul[data-type="taskList"] input[type="checkbox"] {
+  @apply h-4 w-4 rounded border-border text-primary focus:ring-primary accent-primary;
+}
+
+/* Premium AI Insertion Glow Animation */
+@keyframes insertionGlow {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.25); }
+  40% { box-shadow: 0 0 24px 6px rgba(99, 102, 241, 0.12); }
+  100% { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+}
+.insertion-glow {
+  animation: insertionGlow 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Inserted content highlight fade */
+@keyframes insertFadeHighlight {
+  0% { background-color: rgba(99, 102, 241, 0.12); }
+  100% { background-color: transparent; }
+}
+.ProseMirror .ai-inserted-block {
+  animation: insertFadeHighlight 2.5s ease-out forwards;
+  border-radius: 6px;
+}
+
+/* ========================================================
+   PREMIUM SIGNATURE & FIELD BLOCKS (MILLION DOLLAR LOOK)
+   ======================================================== */
+.ProseMirror .signature-container {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 5rem;
+  margin-bottom: 3rem;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.ProseMirror .signature-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 280px;
+  margin-top: 1.5rem;
+}
+
+.ProseMirror .signature-line {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--border) / 0.8), transparent);
+  margin-bottom: 0.8rem;
+  position: relative;
+}
+
+.ProseMirror .signature-line::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  opacity: 0.7;
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.5);
+}
+
+.ProseMirror .signature-name {
+  font-weight: 700 !important;
+  font-size: 1.15rem !important;
+  color: hsl(var(--foreground)) !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em;
+}
+
+.ProseMirror .signature-role {
+  font-size: 0.85rem !important;
+  color: hsl(var(--muted-foreground)) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 !important;
+  font-weight: 500 !important;
+}
+
+.ProseMirror .form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.ProseMirror .field-box {
+  background: hsl(var(--card) / 0.4);
+  border: 1px solid hsl(var(--border) / 0.4);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  position: relative;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05);
+  margin-bottom: 1.5rem;
+}
+
+.ProseMirror .field-box:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--card) / 0.8);
+  box-shadow: 0 8px 30px -5px rgba(var(--primary), 0.1);
+  transform: translateY(-2px);
+}
+
+.ProseMirror .field-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: hsl(var(--primary));
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.ProseMirror .field-value {
+  display: block;
+  height: 2.5rem;
+  border-bottom: 2px dotted hsl(var(--border));
+  width: 100%;
+  transition: border-color 0.3s ease;
+}
+
+.ProseMirror .field-box:hover .field-value {
+  border-bottom-color: hsl(var(--primary) / 0.5);
+}

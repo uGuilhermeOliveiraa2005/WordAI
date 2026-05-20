@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperial Grand Piano - Studio Edition</title>
+    <!-- Motor de Áudio Pro -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #050505;
+            color: #e0d0b8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(circle at 50% 0%, #1a1510 0%, #050505 80%);
+        }
+
+        /* Tela de Loading */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #050505;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #333;
+            border-top-color: #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #start-btn {
+            display: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(to bottom, #d4af37, #aa8222);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            transition: 0.2s;
+        }
+
+        #start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
+        }
+
+        /* VST Plugin Container */
+        .vst-container {
+            background: linear-gradient(180deg, #1e1e1e 0%, #0a0a0a 100%);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9), inset 0 2px 5px rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 1000px;
+            position: relative;
+            border-top: 4px solid #d4af37;
+        }
+
+        .vst-header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 15px;
+        }
+
+        .vst-header h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            color: #d4af37;
+            text-transform: uppercase;
+        }
+
+        /* Controles do Piano e Sequenciador */
+        .top-panel {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .rack-section {
+            background: #111;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #222;
+            flex: 1;
+        }
+
+        .rack-title {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        /* Knobs (Sliders) */
+        .knobs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            accent-color: #d4af37;
+            cursor: pointer;
+        }
+
+        /* Sequenciador (Leitor de Partituras) */
+        .sequencer-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .preset-selector {
+            background: #222;
+            color: #d4af37;
+            border: 1px solid #444;
+            padding: 8px;
+            border-radius: 4px;
+            outline: none;
+            font-family: monospace;
+        }
+
+        textarea {
+            width: 100%;
+            height: 70px;
+            background: #1a1a1a;
+            color: #00ffcc;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            resize: none;
+            outline: none;
+        }
+
+        .transport-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .transport-btns button {
+            flex: 1;
+            padding: 10px;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .transport-btns button.play {
+            background: #1b4d1b;
+            border-color: #2e802e;
+            color: #90ee90;
+        }
+
+        .transport-btns button.stop {
+            background: #4d1b1b;
+            border-color: #802e2e;
+            color: #ff9999;
+        }
+
+        .transport-btns button:hover {
+            filter: brightness(1.2);
+        }
+
+        /* Teclado Físico */
+        .keyboard-bed {
+            background: #000;
+            padding: 15px 10px 10px 10px;
+            border-radius: 8px;
+            box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .keys-container {
+            display: flex;
+            position: relative;
+            height: 250px;
+        }
+
+        .key {
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 0 4px 4px;
+            user-select: none;
+            transition: transform 0.05s, background 0.1s;
+        }
+
+        .key.white {
+            flex: 1;
+            background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+            border: 1px solid #ccc;
+            border-top: none;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+
+        .key.white.active {
+            background: linear-gradient(to bottom, #e0e0e0 0%, #d4af37 100%);
+            transform: translateY(2px);
+            box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .key.black {
+            width: 2.8%;
+            /* Proporção aproximada */
+            height: 150px;
+            background: linear-gradient(to bottom, #222 0%, #000 100%);
+            border: 1px solid #111;
+            z-index: 2;
+            position: absolute;
+            box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+
+        .key.black.active {
+            background: linear-gradient(to bottom, #111 0%, #aa8222 100%);
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .key-label {
+            font-size: 0.6rem;
+            color: #888;
+            pointer-events: none;
+            font-weight: bold;
+        }
+
+        .key.black .key-label {
+            color: #555;
+        }
+
+        .trigger-label {
+            font-size: 0.7rem;
+            color: #d4af37;
+            margin-top: 2px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="spinner" id="spinner"></div>
+        <h2 id="loading-text" style="color: #d4af37; font-weight: 300; letter-spacing: 2px;">Carregando Salamander Grand
+            Piano...</h2>
+        <p style="color: #888; margin-top: 10px; font-size: 0.9rem;">Processando samples acústicos de altíssima
+            qualidade (Requer servidor local)</p>
+        <button id="start-btn">INICIAR VST</button>
+    </div>
+
+    <!-- Interface do VST -->
+    <div class="vst-container">
+        <div class="vst-header">
+            <h1>Imperial Grand</h1>
+        </div>
+
+        <div class="top-panel">
+            <!-- FX & Master Rack -->
+            <div class="rack-section" style="flex: 0.4;">
+                <div class="rack-title">Acoustics & Master</div>
+                <div class="knobs-grid">
+                    <div class="control-group">
+                        <label>Volume (dB)</label>
+                        <input type="range" id="vol-slider" min="-30" max="5" value="-2">
+                    </div>
+                    <div class="control-group">
+                        <label>Reverb (Sala)</label>
+                        <input type="range" id="reverb-slider" min="0" max="1" step="0.05" value="0.5">
+                    </div>
+                    <div class="control-group" style="grid-column: span 2;">
+                        <label>Tempo (BPM) - Para Partitura</label>
+                        <input type="range" id="bpm-slider" min="60" max="240" value="120">
+                        <span id="bpm-display" style="font-size: 0.7rem; color: #d4af37; margin-top: 2px;">120
+                            BPM</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto-Player (Partituras) -->
+            <div class="rack-section">
+                <div class="rack-title">Sequenciador de Partituras (Auto-Player)</div>
+                <div class="sequencer-controls">
+                    <select class="preset-selector" id="preset-select">
+                        <option value="">-- Partitura Livre (Escreva Abaixo) --</option>
+                        <option value="ode">Beethoven - Ode à Alegria</option>
+                        <option value="elise">Beethoven - Für Elise (Intro)</option>
+                        <option value="chords">Progressão de Acordes (C, Am, F, G)</option>
+                    </select>
+
+                    <!-- Sintaxe: Notas separadas por espaço. Hífen (-) para pausa. Sinal de mais (+) para acordes -->
+                    <textarea id="sheet-input" placeholder="Ex: C4 D4 E4 - F4+A4+C5 G4..."></textarea>
+
+                    <div class="transport-btns">
+                        <button class="play" id="btn-play">▶ Tocar Partitura</button>
+                        <button class="stop" id="btn-stop">■ Parar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teclado -->
+        <div class="keyboard-bed">
+            <div class="keys-container" id="piano-keyboard">
+                <!-- Injetado dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Escala completa (C3 a B4)
+        const notes = [
+            { note: 'C3', type: 'white', key: 'q' },
+            { note: 'C#3', type: 'black', key: '2', leftPos: 5.5 },
+            { note: 'D3', type: 'white', key: 'w' },
+            { note: 'D#3', type: 'black', key: '3', leftPos: 12.6 },
+            { note: 'E3', type: 'white', key: 'e' },
+            { note: 'F3', type: 'white', key: 'r' },
+            { note: 'F#3', type: 'black', key: '5', leftPos: 27.0 },
+            { note: 'G3', type: 'white', key: 't' },
+            { note: 'G#3', type: 'black', key: '6', leftPos: 34.1 },
+            { note: 'A3', type: 'white', key: 'y' },
+            { note: 'A#3', type: 'black', key: '7', leftPos: 41.2 },
+            { note: 'B3', type: 'white', key: 'u' },
+            { note: 'C4', type: 'white', key: 'z' },
+            { note: 'C#4', type: 'black', key: 's', leftPos: 55.5 },
+            { note: 'D4', type: 'white', key: 'x' },
+            { note: 'D#4', type: 'black', key: 'd', leftPos: 62.6 },
+            { note: 'E4', type: 'white', key: 'c' },
+            { note: 'F4', type: 'white', key: 'v' },
+            { note: 'F#4', type: 'black', key: 'g', leftPos: 77.0 },
+            { note: 'G4', type: 'white', key: 'b' },
+            { note: 'G#4', type: 'black', key: 'h', leftPos: 84.1 },
+            { note: 'A4', type: 'white', key: 'n' },
+            { note: 'A#4', type: 'black', key: 'j', leftPos: 91.2 },
+            { note: 'B4', type: 'white', key: 'm' }
+        ];
+
+        // Partituras Prontas
+        const presets = {
+            'ode': 'E4 E4 F4 G4 G4 F4 E4 D4 C4 C4 D4 E4 E4 - D4 D4',
+            'elise': 'E4 D#4 E4 D#4 E4 B3 D4 C4 A3 - - C3 E3 A3 B3 - - E3 G#3 B3 C4',
+            'chords': 'C3+E3+G3+C4 - - - A2+C3+E3+A3 - - - F2+A2+C3+F3 - - - G2+B2+D3+G3'
+        };
+
+        let pianoSampler;
+        let masterVol;
+        let reverbFx;
+        const activeNotes = new Set();
+        let currentPart = null; // Para o sequenciador Tone.Part
+
+        // Configuração do Engine de Áudio
+        function initAudio() {
+            masterVol = new Tone.Volume(-2).toDestination();
+            reverbFx = new Tone.Reverb({ decay: 4, preDelay: 0.01 }).connect(masterVol);
+            reverbFx.wet.value = 0.5;
+
+            // Carrega os samples reais do piano de cauda
+            pianoSampler = new Tone.Sampler({
+                urls: {
+                    "A1": "A1.mp3", "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3",
+                    "A2": "A2.mp3", "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3",
+                    "A3": "A3.mp3", "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3",
+                    "A4": "A4.mp3", "C5": "C5.mp3"
+                },
+                release: 1.5,
+                baseUrl: "https://tonejs.github.io/audio/salamander/",
+                onload: () => {
+                    document.getElementById('spinner').style.display = 'none';
+                    document.getElementById('loading-text').innerText = 'Piano Carregado com Sucesso!';
+                    document.getElementById('start-btn').style.display = 'block';
+                }
+            }).connect(reverbFx);
+
+            Tone.Transport.bpm.value = 120;
+        }
+
+        // Renderiza o Teclado Visual
+        function renderKeyboard() {
+            const container = document.getElementById('piano-keyboard');
+
+            notes.forEach((item) => {
+                const keyElement = document.createElement('div');
+                keyElement.className = `key ${item.type}`;
+                keyElement.dataset.note = item.note;
+
+                const noteLabel = document.createElement('span');
+                noteLabel.className = 'key-label';
+                noteLabel.innerText = item.note;
+
+                const triggerLabel = document.createElement('span');
+                triggerLabel.className = 'trigger-label';
+                triggerLabel.innerText = item.key.toUpperCase();
+
+                keyElement.appendChild(noteLabel);
+                keyElement.appendChild(triggerLabel);
+
+                if (item.type === 'black') {
+                    keyElement.style.left = `${item.leftPos}%`;
+                }
+
+                // Eventos Mouse/Touch
+                const triggerPlay = (e) => { e.preventDefault(); playNote(item.note, true); };
+                const triggerStop = (e) => { e.preventDefault(); stopNote(item.note, true); };
+
+                keyElement.addEventListener('mousedown', triggerPlay);
+                keyElement.addEventListener('mouseup', triggerStop);
+                keyElement.addEventListener('mouseleave', triggerStop);
+                keyElement.addEventListener('touchstart', triggerPlay);
+                keyElement.addEventListener('touchend', triggerStop);
+
+                container.appendChild(keyElement);
+            });
+        }
+
+        // Sistema de Trigger de Notas (Aceita arrays para acordes)
+        function playNote(noteOrArray, isPhysicalInteraction = false) {
+            if (!pianoSampler) return;
+
+            const notesToPlay = Array.isArray(noteOrArray) ? noteOrArray : [noteOrArray];
+
+            notesToPlay.forEach(note => {
+                const domKey = document.querySelector(`.key[data-note="${note}"]`);
+                if (domKey) domKey.classList.add('active');
+                activeNotes.add(note);
+            });
+
+            // Toca o áudio real
+            pianoSampler.triggerAttack(notesToPlay, Tone.now());
+        }
+
+        function stopNote(noteOrArray, isPhysicalInteraction = false) {
+            if (!pianoSampler) return;
+
+            const notesToStop = Array.isArray(noteOrArray) ? noteOrArray : [noteOrArray];
+
+            notesToStop.forEach(note => {
+                const domKey = document.querySelector(`.key[data-note="${note}"]`);
+                if (domKey) domKey.classList.remove('active');
+                activeNotes.delete(note);
+            });
+
+            pianoSampler.triggerRelease(notesToStop, Tone.now() + 0.1);
+        }
+
+        // Teclado QWERTY Físico
+        const keyMap = {};
+        notes.forEach(n => { keyMap[n.key.toLowerCase()] = n.note; });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat || document.activeElement.tagName === 'TEXTAREA') return;
+            const note = keyMap[e.key.toLowerCase()];
+            if (note && !activeNotes.has(note)) playNote(note, true);
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (document.activeElement.tagName === 'TEXTAREA') return;
+            const note = keyMap[e.key.toLowerCase()];
+            if (note) stopNote(note, true);
+        });
+
+        // Controles de Efeitos (Rack)
+        document.getElementById('vol-slider').addEventListener('input', (e) => {
+            if (masterVol) masterVol.volume.value = e.target.value;
+        });
+
+        document.getElementById('reverb-slider').addEventListener('input', (e) => {
+            if (reverbFx) reverbFx.wet.value = e.target.value;
+        });
+
+        document.getElementById('bpm-slider').addEventListener('input', (e) => {
+            const bpm = e.target.value;
+            document.getElementById('bpm-display').innerText = `${bpm} BPM`;
+            Tone.Transport.bpm.value = bpm;
+        });
+
+        // ---- LÓGICA DO SEQUENCIADOR (LEITOR DE PARTITURAS) ----
+        document.getElementById('preset-select').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val && presets[val]) {
+                document.getElementById('sheet-input').value = presets[val];
+            } else {
+                document.getElementById('sheet-input').value = '';
+            }
+        });
+
+        document.getElementById('btn-play').addEventListener('click', () => {
+            if (Tone.context.state !== 'running') Tone.start();
+
+            // Para reproduções anteriores
+            Tone.Transport.stop();
+            if (currentPart) currentPart.dispose();
+
+            const text = document.getElementById('sheet-input').value;
+            if (!text.trim()) return;
+
+            // Parser da Partitura
+            // Substitui quebras de linha por espaços e remove espaços duplos
+            const rawTokens = text.replace(/\n/g, ' ').split(/\s+/).filter(t => t.trim() !== '');
+
+            const events = [];
+            let currentTime = 0; // em "beats" (pulsos)
+
+            rawTokens.forEach(token => {
+                if (token === '-' || token.toUpperCase() === 'R') {
+                    // É uma pausa (Rest)
+                    currentTime += 1; // Avança 1 pulso (Semínima)
+                } else {
+                    // Pode ser uma nota (C4) ou acorde (C4+E4+G4)
+                    const chordNotes = token.split('+');
+                    events.push({ time: `0:${currentTime}:0`, note: chordNotes });
+                    currentTime += 1;
+                }
+            });
+
+            // Cria a Partitura no Tone.js
+            currentPart = new Tone.Part((time, value) => {
+                // Aciona o áudio
+                pianoSampler.triggerAttackRelease(value.note, "4n", time);
+
+                // Sincroniza a animação visual na tela usando o Tone.Draw
+                Tone.Draw.schedule(() => {
+                    value.note.forEach(n => {
+                        const domKey = document.querySelector(`.key[data-note="${n}"]`);
+                        if (domKey) {
+                            domKey.classList.add('active');
+                            // Remove a classe após o tempo da nota (aproximado)
+                            setTimeout(() => domKey.classList.remove('active'), (60000 / Tone.Transport.bpm.value) * 0.8);
+                        }
+                    });
+                }, time);
+            }, events).start(0);
+
+            Tone.Transport.start();
+        });
+
+        document.getElementById('btn-stop').addEventListener('click', () => {
+            Tone.Transport.stop();
+            Tone.Transport.position = 0;
+            // Limpa teclas que possam ter ficado presas visualmente
+            document.querySelectorAll('.key.active').forEach(k => k.classList.remove('active'));
+        });
+
+        // Inicialização Final
+        document.getElementById('start-btn').addEventListener('click', async () => {
+            await Tone.start();
+            const loadingScreen = document.getElementById('loading');
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => loadingScreen.style.display = 'none', 500);
+        });
+
+        window.onload = () => {
+            initAudio();
+            renderKeyboard();
+        };
+    </script>
+</body>
+
+</html>
